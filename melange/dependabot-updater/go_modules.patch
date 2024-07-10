@@ -1,0 +1,17 @@
+diff --git a/go_modules/lib/dependabot/go_modules/file_parser.rb b/go_modules/lib/dependabot/go_modules/file_parser.rb
+index 6c2459fec..b4ecf0a56 100644
+--- a/go_modules/lib/dependabot/go_modules/file_parser.rb
++++ b/go_modules/lib/dependabot/go_modules/file_parser.rb
+@@ -40,11 +40,7 @@ module Dependabot
+         return ENV["GOTOOLCHAIN"] = ENV.fetch("GO_LEGACY") unless go_directive
+ 
+         go_version = Dependabot::GoModules::Version.new(go_directive)
+-        ENV["GOTOOLCHAIN"] = if go_version >= "1.21"
+-                               "local+auto"
+-                             else
+-                               ENV.fetch("GO_LEGACY")
+-                             end
++        ENV["GOTOOLCHAIN"] = ENV.fetch("GO_LEGACY")
+       end
+ 
+       sig { returns(T.nilable(Dependabot::DependencyFile)) }

@@ -1,0 +1,48 @@
+include: ../common.yaml
+
+contents:
+  packages:
+    - ca-certificates
+    - ca-certificates-bundle
+    - corepack
+    - git
+    - git-lfs
+    - git-shim@local
+    - go
+    - nodejs
+    - npm
+    - pnpm
+    - python-3.11
+    - py3-mercurial
+    - regclient
+    - ruby-3.2
+    - ruby3.2-aws-eventstream@local
+    - ruby3.2-aws-partitions@local
+    - ruby3.2-aws-sdk-codecommit@local
+    - ruby3.2-aws-sdk-core@local
+    - ruby3.2-aws-sdk-ecr@local
+    - ruby3.2-aws-sigv4@local
+    - ruby3.2-bundler
+    - ruby3.2-dependabot-omnibus@local
+    - ruby3.2-faraday@local
+    - ruby3.2-faraday-net_http@local
+    - ruby3.2-parseconfig~1.0@local
+    - rust
+    - terraform
+    - wolfi-baselayout
+    - yarn
+
+annotations:
+  image-author: 'GitGuardian SRE Team <sre@gitguardian.com>'
+
+accounts:
+  groups:
+    - groupname: dependabot
+      gid: 65532
+  users:
+    - username: dependabot
+      uid: 65532
+      gid: 65532
+  run-as: nonroot
+
+work-dir: /home/dependabot

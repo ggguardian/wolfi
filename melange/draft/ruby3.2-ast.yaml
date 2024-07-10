@@ -1,0 +1,52 @@
+package:
+  name: ruby3.2-ast
+  version: 2.4.2
+  epoch: 0
+  description: A library for working with Abstract Syntax Trees.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: ast
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 272f4a883573dacf0a33b4799e38e89e0b4c7dc8
+      repository: https://github.com/whitequark/ast.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

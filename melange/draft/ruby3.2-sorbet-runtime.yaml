@@ -1,0 +1,58 @@
+package:
+  name: ruby3.2-sorbet-runtime
+  version: 0.5.11475
+  epoch: 0
+  description: Run any code in sorbet-runtime Processes.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: sorbet-runtime
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 743f567d9fd3f9b3bc58febc42a5751508074cde
+      repository: https://github.com/sorbet/sorbet.git
+      tag: ${{package.version}}.20240708120842-743f567d9
+
+  - runs: |
+      cd gems/${{vars.gem}}
+      sed -i -r "s/(s.version.*=.*)'(.*)'/\1'${{package.version}}'/" ${{vars.gem}}.gemspec
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+      dir: gems/${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+      dir: gems/${{vars.gem}}
+
+  - uses: ruby/clean

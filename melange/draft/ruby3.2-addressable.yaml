@@ -1,0 +1,53 @@
+package:
+  name: ruby3.2-addressable
+  version: 2.8.7
+  epoch: 0
+  description: Addressable is an alternative implementation to the URI implementation that is part of Ruby's standard library.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-public_suffix
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: addressable
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 7930ece6e4ae266e67fc927f2e44e39f97fd5f22
+      repository: https://github.com/sporkmonger/addressable.git
+      tag: ${{vars.gem}}-${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

@@ -1,0 +1,55 @@
+package:
+  name: ruby3.2-opentelemetry-registry
+  version: 0.3.1
+  epoch: 0
+  description: A stats collection and distributed tracing framework.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-opentelemetry-api
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: opentelemetry-registry
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 1574c41ca1eb684c0eb7de58fcc987c3ee0dece6
+      repository: https://github.com/open-telemetry/opentelemetry-ruby.git
+      tag: ${{vars.gem}}/v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+      dir: registry
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+      dir: registry
+
+  - uses: ruby/clean

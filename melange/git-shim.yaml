@@ -1,0 +1,51 @@
+package:
+  name: git-shim
+  version: 1.5.0
+  epoch: 0
+  description: This git shim replaces any URL or SCP-style URL as an argument to git with an HTTPS URL.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - git
+      - git-lfs
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - busybox
+      - ca-certificates-bundle
+      - git
+
+vars:
+  gem: parallel
+
+pipeline:
+  - if: ${{build.arch}} == 'x86_64'
+    uses: fetch
+    with:
+      uri: https://github.com/dependabot/${{package.name}}/releases/download/v${{package.version}}/${{package.name}}-v${{package.version}}-linux-amd64.tar.gz
+      strip-components: 0
+      expected-sha256: 8169f3faad95afdd797d399d830d5d166b4b8323510d6a3e2780e457ff686c05
+
+  - if: ${{build.arch}} == 'aarch64'
+    uses: fetch
+    with:
+      uri: https://github.com/dependabot/${{package.name}}/releases/download/v${{package.version}}/${{package.name}}-v${{package.version}}-linux-arm64.tar.gz
+      strip-components: 0
+      expected-sha256: 0d3941b1aecb728af9bb5916c37edef18a1e6a26c2a16e012037d9add9abc010
+
+  - runs: |
+      DESTDIR=${{targets.destdir}}/usr/bin
+      install -d -m 755 $DESTDIR
+      install -D -m 755 ${{package.name}} ${DESTDIR}/${{package.name}}

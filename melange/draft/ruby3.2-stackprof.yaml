@@ -1,0 +1,52 @@
+package:
+  name: ruby3.2-stackprof
+  version: 0.2.26
+  epoch: 0
+  description: Stackprof is a fast sampling profiler for ruby code, with cpu, wallclock and object allocation samplers.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: stackprof
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: ebdd3af48a2c4ddf35b0a73858ea72dcdb551188
+      repository: https://github.com/tmm1/stackprof.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

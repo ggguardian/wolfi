@@ -1,0 +1,77 @@
+package:
+  name: ruby3.2-nokogiri
+  version: 1.16.6
+  epoch: 0
+  description: Nokogiri (鋸) makes it easy and painless to work with XML and HTML from Ruby.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-mini_portile2~2.8
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+      - /work/packages/melange.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+      - '@local /work/packages'
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - libxml2-dev
+      - libxslt-dev
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+      - ruby3.2-mini_portile2~2.8@local
+      - xz-dev
+      - zlib-dev
+
+vars:
+  gem: nokogiri
+
+pipeline:
+  # - runs: |
+  #     TARGET_DIR_BIN="${{targets.contextdir}}/usr/bin"
+  #     TARGET_DIR_INSTALL="${{targets.contextdir}}$(ruby -e 'puts Gem.default_dir')/"
+
+  #     mkdir -p "${TARGET_DIR_BIN}"
+  #     mkdir -p "${TARGET_DIR_INSTALL}"
+
+  #     gem install ${{vars.gem}} \
+  #       --install-dir ${TARGET_DIR_INSTALL}  \
+  #       --bindir ${TARGET_DIR_BIN} \
+  #       --version ${{package.version}} \
+  #       --ignore-dependencies \
+  #       --no-document \
+  #       --verbose \
+  #       --remote
+
+  # For version >= 1.11.0
+  - uses: git-checkout
+    with:
+      expected-commit: fb833eae289136cb302b613cf2dba330f9f3dba5
+      repository: https://github.com/sparklemotion/nokogiri.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

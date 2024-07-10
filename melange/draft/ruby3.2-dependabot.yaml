@@ -1,0 +1,196 @@
+package:
+  name: ruby3.2-dependabot
+  version: 0.264.0
+  epoch: 0
+  description: Dependabot provides automated dependency updates for multiple package managers.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    provides:
+        - ${{package.name}}=${{package.version}}
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-aws-sdk-codecommit
+      - ruby3.2-aws-sdk-ecr
+      - ruby3.2-bundler<3.0.0
+      - ruby3.2-commonmarker<0.24.0
+      - ruby3.2-docker_registry2
+      - ruby3.2-excon
+      - ruby3.2-faraday=2.7.11
+      - ruby3.2-faraday-retry=2.2.0
+      - ruby3.2-gitlab=4.19.0
+      - ruby3.2-json
+      - ruby3.2-nokogiri~1.16
+      - ruby3.2-octokit<7.0
+      - ruby3.2-opentelemetry-sdk
+      - ruby3.2-parallel
+      - ruby3.2-parseconfig~1.0
+      - ruby3.2-parser
+      - ruby3.2-rubyzip
+      - ruby3.2-sorbet-runtime
+      - ruby3.2-stackprof
+      - ruby3.2-toml-rb~2.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+      - yaml-dev
+
+vars:
+  project: dependabot
+  core_version: 0.95.1
+
+data:
+  - name: gems
+    items:
+      bundler: bundler
+      cargo: cargo
+      composer: composer
+      devcontainers: devcontainers
+      docker: docker
+      elm: elm
+      github_actions: github_actions
+      git_submodules: git_submodules
+      go_modules: go_modules
+      gradle: gradle
+      hex: hex
+      maven: maven
+      npm_and_yarn: npm_and_yarn
+      nuget: nuget
+      pub: pub
+      python: python
+      swift: swift
+      terraform: terraform
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: e8d8a1268ea61304e939ba9ab963e249cac5b241
+      repository: https://github.com/dependabot/dependabot-core.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.project}}-core
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.project}}-core
+      version: ${{vars.core_version}}
+
+  - uses: ruby/clean
+
+subpackages:
+  - name: "${{package.name}}-common"
+    dependencies:
+      provides:
+        - ${{package.name}}-common=${{package.version}}
+    pipeline:
+      - uses: ruby/build
+        with:
+          dir: common
+          gem: ${{vars.project}}-common
+
+      - uses: ruby/install
+        with:
+          dir: common
+          gem: ${{vars.project}}-common
+          version: ${{package.version}}
+
+      - uses: ruby/clean
+
+  - range: gems
+    name: "${{package.name}}-${{range.key}}"
+    dependencies:
+      provides:
+        - ${{package.name}}-${{range.key}}=${{package.version}}
+    pipeline:
+      - runs: |
+          GEM_SPEC=${{range.key}}/${{vars.project}}-${{range.key}}.gemspec
+          awk -v q="'" 'NR==2{print "require "q"bundler"q}1' $GEM_SPEC > ${GEM_SPEC}.new
+          mv ${GEM_SPEC}.new $GEM_SPEC
+
+      - uses: ruby/build
+        with:
+          dir: ${{range.key}}
+          gem: ${{vars.project}}-${{range.key}}
+
+      - uses: ruby/install
+        with:
+          dir: ${{range.key}}
+          gem: ${{vars.project}}-${{range.key}}
+          version: ${{package.version}}
+
+      - uses: ruby/clean
+
+  - name: ${{package.name}}-omnibus
+    description: meta package providing all dependabots gems.
+    dependencies:
+      provides:
+        - ${{package.name}}-omnibus=${{package.version}}
+      runtime:
+        - ${{package.name}}
+        - ${{package.name}}-common
+        - ${{package.name}}-bundler
+        - ${{package.name}}-cargo
+        - ${{package.name}}-composer
+        - ${{package.name}}-devcontainers
+        - ${{package.name}}-docker
+        - ${{package.name}}-elm
+        - ${{package.name}}-github_actions
+        - ${{package.name}}-git_submodules
+        - ${{package.name}}-go_modules
+        - ${{package.name}}-gradle
+        - ${{package.name}}-hex
+        - ${{package.name}}-maven
+        - ${{package.name}}-npm_and_yarn
+        - ${{package.name}}-nuget
+        - ${{package.name}}-pub
+        - ${{package.name}}-python
+        - ${{package.name}}-swift
+        - ${{package.name}}-terraform
+    pipeline:
+      - runs: |
+          GEM_SPEC=omnibus/${{vars.project}}-omnibus.gemspec
+          awk -v q="'" 'NR==2{print "require "q"bundler"q}1' $GEM_SPEC > ${GEM_SPEC}.new
+          mv ${GEM_SPEC}.new $GEM_SPEC
+
+      - uses: ruby/build
+        with:
+          dir: omnibus
+          gem: ${{vars.project}}-omnibus
+
+      - uses: ruby/install
+        with:
+          dir: omnibus
+          gem: ${{vars.project}}-omnibus
+          version: ${{package.version}}
+
+      - uses: ruby/clean
+
+  # - runs: |
+  #     TARGET_DIR_BIN="${{targets.contextdir}}/usr/bin"
+  #     TARGET_DIR_INSTALL="${{targets.contextdir}}$(ruby -e 'puts Gem.default_dir')/"
+
+  #     gem install ${{package.name}} \
+  #       --install-dir ${TARGET_DIR_INSTALL} \
+  #       --bindir ${TARGET_DIR_BIN} \
+  #       --version ${{package.version}} \
+  #       --no-document

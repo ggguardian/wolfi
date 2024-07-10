@@ -1,0 +1,54 @@
+#nolint:valid-pipeline-git-checkout-tag
+package:
+  name: ruby3.2-aws-sdk-ecr
+  version: 1.78.0
+  epoch: 0
+  description: Provides API clients for AWS. This gem is part of the official AWS SDK for Ruby.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: Apache-2.0
+  dependencies:
+    runtime:
+      - ruby-3.2
+      - ruby3.2-aws-sdk-core
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 7f98c97359f637ff32c2ade8d6d4890c9fdefedb
+      repository: https://github.com/aws/aws-sdk-ruby
+      branch: version-3
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+      dir: gems/${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+      dir: gems/${{vars.gem}}
+
+  - uses: ruby/clean
+
+vars:
+  gem: aws-sdk-ecr

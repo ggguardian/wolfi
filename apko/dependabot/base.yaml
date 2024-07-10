@@ -1,0 +1,44 @@
+include: ../common.yaml
+
+contents:
+  packages:
+    - ca-certificates
+    - ca-certificates-bundle
+    - corepack
+    - dependabot@local
+    - git
+    - git-lfs
+    - git-shim@local
+    - go
+    - nodejs
+    - npm
+    - openssl
+    - pnpm
+    - python-3.11
+    - py3.11-mercurial@local
+    - regclient
+    - ruby-3.3
+    - rust
+    - terraform
+    - wolfi-baselayout
+    - yarn
+
+environment:
+  GEM_HOME: /opt/dependabot/gems
+  GEM_PATH: /opt/dependabot/gems
+  PATH: "/opt/dependabot/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+annotations:
+  image-author: 'GitGuardian SRE Team <sre@gitguardian.com>'
+
+accounts:
+  groups:
+    - groupname: dependabot
+      gid: 65532
+  users:
+    - username: dependabot
+      uid: 65532
+      gid: 65532
+  run-as: nonroot
+
+work-dir: /home/dependabot

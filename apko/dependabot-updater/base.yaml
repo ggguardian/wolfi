@@ -1,0 +1,61 @@
+include: ../common.yaml
+
+contents:
+  packages:
+    - ca-certificates
+    - ca-certificates-bundle
+    - dependabot-updater-cargo@local
+    - dependabot-updater-docker@local
+    - dependabot-updater-gomod@local
+    - dependabot-updater-maven@local
+    - dependabot-updater-npm@local
+    - dependabot-updater-pip@local
+    - dependabot-updater-terraform@local
+    - git-shim@local
+    - openssl
+    - py3.11-mercurial@local
+    - python-3.11
+    - ruby-3.3
+    - wolfi-baselayout
+
+environment:
+  DEPENDABOT_HOME: /home/dependabot
+  DEPENDABOT_NATIVE_HELPERS_PATH: /opt
+  DEPENDABOT_UPDATER_VERSION: 0.264.0
+  DEPENDABOT: true
+  GIT_LFS_SKIP_SMUDGE: 1
+  GO_LEGACY: local
+  GOTOOLCHAIN: local
+  PATH: "/home/dependabot/.pyenv/bin:/home/dependabot/dependabot-updater/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  PYENV_ROOT: /home/dependabot/.pyenv
+
+paths:
+  - path: /etc/ssl/certs
+    type: directory
+    permissions: 0o775
+    uid: 0
+    gid: 65532
+  - path: /home/dependabot
+    type: directory
+    permissions: 0o750
+    uid: 65532
+    gid: 65532
+  - path: /home/dependabot/.pyenv
+    type: directory
+    permissions: 0o750
+    uid: 65532
+    gid: 65532
+  - path: /home/dependabot/.pyenv/versions
+    type: directory
+    permissions: 0o750
+    uid: 65532
+    gid: 65532
+  - path: /home/dependabot/dependabot-updater
+    type: directory
+    permissions: 0o750
+    uid: 65532
+    gid: 65532
+
+work-dir: /home/dependabot/dependabot-updater
+
+cmd: bin/run

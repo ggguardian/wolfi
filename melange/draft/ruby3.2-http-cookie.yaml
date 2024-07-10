@@ -1,0 +1,53 @@
+package:
+  name: ruby3.2-http-cookie
+  version: 1.0.7
+  epoch: 0
+  description: HTTP::Cookie is a ruby library to handle HTTP cookies in a way both compliant with RFCs and compatible with today's major browsers.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-domain-name
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: http-cookie
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 9efa5792ba8493d8ca60315bb8fba9059d6b9e1c
+      repository: https://github.com/sparklemotion/http-cookie.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

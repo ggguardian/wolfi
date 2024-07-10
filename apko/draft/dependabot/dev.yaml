@@ -1,0 +1,26 @@
+include: base.yaml
+
+contents:
+  packages:
+    - bash
+    - build-base
+    - busybox
+    - curl
+    - nano
+    - python-3.11-dev
+    - py3.11-pip
+    - py3.11-pdm@local
+    - ruby-3.2-dev
+    - vim
+    - wget
+    - wolfi-base
+
+accounts:
+  groups:
+    - groupname: dependabot
+      gid: 65532
+  users:
+    - username: dependabot
+      uid: 65532
+      gid: 65532
+  run-as: root

@@ -1,0 +1,60 @@
+package:
+  name: ruby3.2-simplecov
+  version: 0.15.1
+  epoch: 0
+  description: Code coverage for Ruby with a powerful configuration library and automatic merging of coverage across test suites.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-docile~1.1
+      - ruby3.2-simplecov-html~0.10
+      - ruby3.2-simplecov_json_formatter~0.1
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+      - /work/packages/melange.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+      - '@local /work/packages'
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+      - ruby3.2-docile~1.1@local
+      - ruby3.2-simplecov-html~0.10@local
+      - ruby3.2-simplecov_json_formatter~0.1@local
+
+vars:
+  gem: simplecov
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: fb6785dd14a925915d02744b75b99e5769ae4e8e
+      repository: https://github.com/simplecov-ruby/simplecov.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

@@ -1,0 +1,58 @@
+package:
+  name: ruby3.2-http-accept
+  version: 1.7.0
+  epoch: 0
+  description: Provides a robust set of parsers for dealing with HTTP Accept, Accept-Language, Accept-Encoding, Accept-Charset headers.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - openssl
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: http-accept
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 79688d055fb411db17b7027bea61cbbbd52cfed4
+      repository: https://github.com/socketry/http-accept.git
+      tag: v${{package.version}}
+
+  # Only for version >= 2
+  # - uses: patch
+  #   with:
+  #     patches: ${{package.name}}/001-remove-signing-key.patch
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

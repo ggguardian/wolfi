@@ -1,0 +1,54 @@
+package:
+  name: ruby3.2-httparty
+  version: 0.22.0
+  epoch: 0
+  description: Makes http fun again! Ain't no party like a httparty, because a httparty don't stop.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-mini_mime
+      - ruby3.2-multi_xml
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: httparty
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 6e1f154309a6076208ba9bec8e4183ec619541e0
+      repository: https://github.com/jnunemaker/httparty.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

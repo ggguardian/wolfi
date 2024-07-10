@@ -1,0 +1,56 @@
+package:
+  name: ruby3.2-gitlab
+  version: 4.19.0
+  epoch: 0
+  description: Gitlab is a Ruby wrapper and CLI for the GitLab API.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    provides:
+      - ${{package.name}}=${{package.version}}
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-httparty
+      - ruby3.2-terminal-table
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: gitlab
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: fdf06d0829800e64e44b2569ddadb939a6e129b4
+      repository: https://github.com/NARKOZ/gitlab.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

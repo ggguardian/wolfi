@@ -1,0 +1,12 @@
+diff --git a/http-accept.gemspec b/http-accept.gemspec
+index ad5482c..cf97d9b 100644
+--- a/http-accept.gemspec
++++ b/http-accept.gemspec
+@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
+ 	spec.license = "MIT"
+ 	
+ 	spec.cert_chain  = ['release.cert']
+-	spec.signing_key = File.expand_path('~/.gem/release.pem')
+ 	
+ 	spec.homepage = "https://github.com/ioquatix/http-accept"
+ 	

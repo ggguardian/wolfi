@@ -1,0 +1,52 @@
+package:
+  name: ruby3.2-mini_portile2
+  version: 2.8.2
+  epoch: 0
+  description: This documents versions 2 and up, for which the require file was renamed to mini_portile2.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: mini_portile2
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 5084a2aeab12076f534cf0cabc81a4d5f84b5c25
+      repository: https://github.com/flavorjones/mini_portile.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

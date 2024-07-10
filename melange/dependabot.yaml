@@ -1,0 +1,48 @@
+package:
+  name: dependabot
+  version: "0.164.0"
+  description: Dependabot provides automated dependency updates for multiple package managers.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    provides:
+      - ${{package.name}}==${{package.full-version}}
+    runtime:
+      - ruby-3.3
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.3
+      - ruby-3.3-dev
+      - ruby3.3-bundler
+      - yaml-dev
+
+pipeline:
+  - runs: |
+      TARGET_BIN_DIR="${{targets.contextdir}}/opt/dependabot/bin"
+      TARGET_INSTALL_DIR="${{targets.contextdir}}/opt/dependabot/gems"
+
+      mkdir -p "${TARGET_BIN_DIR}"
+      mkdir -p "${TARGET_INSTALL_DIR}"
+
+      gem install ${{package.name}}-omnibus \
+        --install-dir ${TARGET_INSTALL_DIR}  \
+        --bindir ${TARGET_BIN_DIR} \
+        --version ${{package.version}} \
+        --no-document \
+        --verbose \
+        --remote
+
+  - uses: ruby/clean

@@ -1,0 +1,55 @@
+package:
+  name: ruby3.2-opentelemetry-semantic_conventions
+  version: 1.10.0
+  epoch: 0
+  description: A stats collection and distributed tracing framework.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-opentelemetry-api
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: opentelemetry-semantic_conventions
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: 886cb599944f063577395acf0830622e8ddbe3b5
+      repository: https://github.com/open-telemetry/opentelemetry-ruby.git
+      tag: ${{vars.gem}}/v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+      dir: semantic_conventions
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+      dir: semantic_conventions
+
+  - uses: ruby/clean

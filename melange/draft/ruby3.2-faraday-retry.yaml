@@ -1,0 +1,53 @@
+package:
+  name: ruby3.2-faraday-retry
+  version: 2.2.0
+  epoch: 0
+  description: The Retry middleware automatically retries requests that fail due to intermittent client or server errors (such as network hiccups).
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - ruby-3.2
+      - ruby3.2-faraday
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      - https://packages.cgr.dev/extras/chainguard-extras.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+      - https://packages.cgr.dev/extras
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - git
+      - ruby-3.2
+      - ruby-3.2-dev
+      - ruby3.2-bundler
+
+vars:
+  gem: faraday-retry
+
+pipeline:
+  - uses: git-checkout
+    with:
+      expected-commit: e9d0df287a8f4c12e1cfbe046455e148d3caf556
+      repository: https://github.com/lostisland/faraday-retry.git
+      tag: v${{package.version}}
+
+  - uses: ruby/build
+    with:
+      gem: ${{vars.gem}}
+
+  - uses: ruby/install
+    with:
+      gem: ${{vars.gem}}
+      version: ${{package.version}}
+
+  - uses: ruby/clean

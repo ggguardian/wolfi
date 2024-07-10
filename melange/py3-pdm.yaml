@@ -1,0 +1,79 @@
+package:
+  name: py3-pdm
+  version: "2.15.4"
+  description: A modern Python package and dependency manager supporting the latest PEP standards.
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  dependencies:
+    provider-priority: 0
+
+vars:
+  pypi-package: pdm
+
+data:
+  - name: py-versions
+    items:
+      3.10: "310"
+      3.11: "311"
+      3.12: "312"
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - build-base
+      - busybox
+      - ca-certificates-bundle
+      - py3-supported-python
+      - py3-supported-pip
+      - wolfi-base
+
+  environment:
+    # This is needed to work around the error "ValueError: ZIP does not support timestamps before 1980"
+    SOURCE_DATE_EPOCH: 315532800
+
+pipeline:
+  - uses: fetch
+    with:
+      uri: https://files.pythonhosted.org/packages/source/p/pdm/pdm-${{package.version}}.tar.gz
+      expected-sha256: 58e225850567dcadce42418db4638996df2b1378cd0830cd48afda1b455d9c72
+
+subpackages:
+  - range: py-versions
+    name: py${{range.key}}-${{vars.pypi-package}}
+    description: ${{vars.pypi-package}} installed for python${{range.key}}
+    pipeline:
+      - runs: |
+          VENV_DIR="/opt/${{vars.pypi-package}}"
+          TARGET_VENV_DIR="${{targets.subpkgdir}}${VENV_DIR}"
+          TARGET_BIN_DIR="${{targets.subpkgdir}}/usr/bin"
+
+          python${{range.key}} -m venv ${VENV_DIR}
+          source ${VENV_DIR}/bin/activate
+          pip${{range.key}} install .
+          deactivate
+
+          install -dm755 ${TARGET_VENV_DIR}
+          install -dm755 ${TARGET_BIN_DIR}
+          mv ${VENV_DIR}/* ${TARGET_VENV_DIR}
+          install -m755 ${TARGET_VENV_DIR}/bin/pdm "${{targets.subpkgdir}}"/usr/bin/pdm
+    dependencies:
+      provides:
+        - py3-${{vars.pypi-package}}
+      runtime:
+        - python-${{range.key}}
+      provider-priority: ${{range.value}}
+
+  - name: py3-supported-${{vars.pypi-package}}
+    description: meta package providing ${{vars.pypi-package}} for supported python versions.
+    dependencies:
+      runtime:
+        - py3.10-${{vars.pypi-package}}
+        - py3.11-${{vars.pypi-package}}
+        - py3.12-${{vars.pypi-package}}

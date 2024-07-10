@@ -1,0 +1,353 @@
+package:
+  name: dependabot-updater
+  version: 0.264.0
+  epoch: 0
+  description: Use Dependabot to generate automated pull requests updating dependencies for projects
+  target-architecture:
+    - x86_64
+    - aarch64
+  copyright:
+    - license: MIT
+  options:
+    # See https://github.com/chainguard-dev/melange/blob/main/docs/BUILD-FILE.md
+    no-depends: true
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+      - file
+      - git
+      - git-lfs
+      - git-shim
+      - gnupg
+      - openssl
+      - py3-mercurial
+      - ruby-3.3
+      - ruby3.3-bundler
+      - unzip
+      - yaml
+      - zlib
+
+environment:
+  contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
+    packages:
+      - bash
+      - build-base
+      - busybox
+      - bzip2-dev
+      - curl
+      - curl-dev
+      - go
+      - krb5-dev
+      - libffi-dev
+      - mariadb-dev
+      - ncurses-dev
+      - nodejs
+      - npm
+      - openssl
+      - openssl-dev
+      - postgresql-dev
+      - readline-dev
+      - ruby-3.3-dev
+      - ruby3.3-bundler
+      - sqlite-dev
+      - wolfi-base
+      - xz-dev
+      - yaml-dev
+      - zlib-dev
+  environment:
+    DEPENDABOT_HOME: "/home/dependabot"
+    DEPENDABOT_NATIVE_HELPERS_PATH: "/opt"
+    GO_LEGACY: "local"
+    GOTOOLCHAIN: "local"
+    PY_3_10: "3.10.13"
+    PY_3_11: "3.11.9"
+    PY_3_12: "3.12.4"
+    PY_3_9: "3.9.18"
+    PYENV_GIT_TAG: "v2.4.7"
+    PYENV_ROOT: "/home/dependabot/.pyenv"
+
+pipeline:
+  - uses: git-checkout
+    with:
+      repository: https://github.com/dependabot/dependabot-core
+      tag: v${{package.version}}
+      expected-commit: e8d8a1268ea61304e939ba9ab963e249cac5b241
+
+  # Force using bundled go toolchain
+  - uses: patch
+    with:
+      patches: ${{package.name}}/go_modules.patch
+
+  - name: Core
+    runs: |
+      export DEPENDABOT_HOME="${{targets.destdir}}${DEPENDABOT_HOME}"
+      export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.destdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+      mkdir -p $DEPENDABOT_HOME
+      mkdir -p $DEPENDABOT_NATIVE_HELPERS_PATH
+
+      cp -r omnibus ${DEPENDABOT_HOME}/omnibus
+
+      mkdir ${DEPENDABOT_HOME}/dependabot-updater
+      cp updater/Gemfile ${DEPENDABOT_HOME}/dependabot-updater/Gemfile
+      cp updater/Gemfile.lock ${DEPENDABOT_HOME}/dependabot-updater/Gemfile.lock
+
+      mkdir ${DEPENDABOT_HOME}/common
+      mkdir ${DEPENDABOT_HOME}/common/lib
+      cp -r common/.bundle ${DEPENDABOT_HOME}/common/.bundle
+      cp common/dependabot-common.gemspec ${DEPENDABOT_HOME}/common/dependabot-common.gemspec
+      cp common/lib/dependabot.rb ${DEPENDABOT_HOME}/common/lib/dependabot.rb
+
+      ecosystems="bundler cargo composer devcontainers docker elm git_submodules github_actions go_modules gradle hex maven npm_and_yarn nuget pub python silent swift terraform"
+      for ecosystem in $ecosystems; do
+        mkdir -p ${DEPENDABOT_HOME}/${ecosystem}/lib/dependabot
+        touch ${DEPENDABOT_HOME}/${ecosystem}/lib/dependabot/${ecosystem}.rb
+        cp -r ${ecosystem}/.bundle ${DEPENDABOT_HOME}/${ecosystem}/.bundle
+        cp ${ecosystem}/dependabot-${ecosystem}.gemspec ${DEPENDABOT_HOME}/${ecosystem}/dependabot-${ecosystem}.gemspec
+      done
+
+      cd ${DEPENDABOT_HOME}/dependabot-updater
+      bundle config set --local path 'vendor'
+      bundle config set --local frozen 'true'
+      bundle config set --local without 'development'
+      bundle install
+      bundle clean
+
+subpackages:
+  - name: ${{package.name}}-pip
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - curl-dev
+        - krb5-dev
+        - mariadb-dev
+        - pkgconf
+        - postgresql-dev
+        - tzdata
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+          export TARGET_PYENV_ROOT="${{targets.subpkgdir}}${PYENV_ROOT}"
+          export PATH=${PYENV_ROOT}/bin:${PATH}
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/python
+          mkdir -p $TARGET_PYENV_ROOT
+
+          cp -rf python/helpers ${DEPENDABOT_NATIVE_HELPERS_PATH}/python/
+
+          curl https://pyenv.run | bash
+
+          pyenv install $PY_3_9
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/python/helpers/build $PY_3_9
+          tar -C ${PYENV_ROOT}/versions -acf ${PYENV_ROOT}/versions/${PY_3_9}.tar.zst $PY_3_9
+          rm -rf $PYENV_ROOT/versions/$PY_3_9
+
+          pyenv install $PY_3_10
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/python/helpers/build $PY_3_10
+          tar -C ${PYENV_ROOT}/versions -acf ${PYENV_ROOT}/versions/${PY_3_10}.tar.zst $PY_3_10
+          rm -rf $PYENV_ROOT/versions/$PY_3_10
+
+          pyenv install $PY_3_11
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/python/helpers/build $PY_3_11
+          tar -C ${PYENV_ROOT}/versions -acf ${PYENV_ROOT}/versions/${PY_3_11}.tar.zst $PY_3_11
+          rm -rf $PYENV_ROOT/versions/$PY_3_11
+
+          pyenv install $PY_3_12
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/python/helpers/build $PY_3_12
+          tar -C ${PYENV_ROOT}/versions -acf ${PYENV_ROOT}/versions/${PY_3_12}.tar.zst $PY_3_12
+
+          pyenv global $PY_3_12
+
+          cp -rf python ${DEPENDABOT_HOME}/python
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+          # Move pyenv to target dir
+          mv ${PYENV_ROOT}/* ${TARGET_PYENV_ROOT}/
+
+  - name: ${{package.name}}-bundler
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+    pipeline:
+       - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/bundler
+
+          cp -rf bundler/helpers ${DEPENDABOT_NATIVE_HELPERS_PATH}/bundler/
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/bundler/helpers/v1/build
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/bundler/helpers/v2/build
+
+          cp -rf bundler ${DEPENDABOT_HOME}/bundler
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-cargo
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - rust
+    pipeline:
+       - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+
+          mkdir -p $DEPENDABOT_HOME
+
+          mkdir -p ${DEPENDABOT_HOME}/.cargo && \
+            printf "[net]\ngit-fetch-with-cli = true\n" >> ${DEPENDABOT_HOME}/.cargo/config.toml
+
+          cp -rf cargo ${DEPENDABOT_HOME}/cargo
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-devcontainers
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - nodejs
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+
+          mkdir -p $DEPENDABOT_HOME
+
+          npm config set prefix ${{targets.subpkgdir}}/usr/local
+          npm install -g @devcontainers/cli
+
+          cp -rf devcontainers ${DEPENDABOT_HOME}/devcontainers
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-docker
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - regclient
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+
+          mkdir -p $DEPENDABOT_HOME
+
+          cp -rf docker ${DEPENDABOT_HOME}/docker
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-gomod
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - go
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/go_modules
+
+          cp -rf go_modules/helpers ${DEPENDABOT_NATIVE_HELPERS_PATH}/go_modules/
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/go_modules/helpers/build
+
+          cp -rf go_modules ${DEPENDABOT_HOME}/go_modules
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+          # This pre-installs specified GOTOOLCHAIN version so that each job doesn't have to do it.
+          go version
+
+  - name: ${{package.name}}-maven
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+    pipeline:
+       - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+
+          mkdir -p $DEPENDABOT_HOME
+
+          cp -rf maven ${DEPENDABOT_HOME}/maven
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-npm
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - corepack
+        - nodejs
+        - npm
+        - pnpm
+        - yarn
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          npm config set prefix ${{targets.subpkgdir}}/usr/local
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/npm_and_yarn
+
+          cp -rf npm_and_yarn/helpers ${DEPENDABOT_NATIVE_HELPERS_PATH}/npm_and_yarn/
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/npm_and_yarn/helpers/build
+
+          cp -rf npm_and_yarn ${DEPENDABOT_HOME}/npm_and_yarn
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-terraform
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - terraform
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/terraform
+
+          cp -rf terraform/helpers "${DEPENDABOT_NATIVE_HELPERS_PATH}/terraform/helpers"
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/terraform/helpers/build
+
+          cp -rf terraform ${DEPENDABOT_HOME}/terraform
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
