@@ -1,6 +1,6 @@
 package:
   name: dependabot-updater
-  version: 0.264.0
+  version: 0.272.0
   epoch: 0
   description: Use Dependabot to generate automated pull requests updating dependencies for projects
   target-architecture:
@@ -38,6 +38,7 @@ environment:
       - build-base
       - busybox
       - bzip2-dev
+      - composer
       - curl
       - curl-dev
       - go
@@ -49,6 +50,9 @@ environment:
       - npm
       - openssl
       - openssl-dev
+      - php-iconv
+      - php-openssl
+      - php-phar
       - postgresql-dev
       - readline-dev
       - ruby-3.3-dev
@@ -65,9 +69,9 @@ environment:
     GOTOOLCHAIN: "local"
     PY_3_10: "3.10.13"
     PY_3_11: "3.11.9"
-    PY_3_12: "3.12.4"
+    PY_3_12: "3.12.5"
     PY_3_9: "3.9.18"
-    PYENV_GIT_TAG: "v2.4.7"
+    PYENV_GIT_TAG: "v2.4.10"
     PYENV_ROOT: "/home/dependabot/.pyenv"
 
 pipeline:
@@ -75,7 +79,12 @@ pipeline:
     with:
       repository: https://github.com/dependabot/dependabot-core
       tag: v${{package.version}}
-      expected-commit: e8d8a1268ea61304e939ba9ab963e249cac5b241
+      expected-commit: c8fa18ef76af57b0a42d0df27682b4801fef9a2c
+
+  # Set php version to 8.3
+  - uses: patch
+    with:
+      patches: ${{package.name}}/composer.patch
 
   # Force using bundled go toolchain
   - uses: patch
@@ -118,6 +127,50 @@ pipeline:
       bundle clean
 
 subpackages:
+  - name: ${{package.name}}-composer
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - composer
+        - php
+        - php-apcu
+        - php-bcmath
+        - php-curl
+        - php-gd
+        - php-gettext
+        - php-gmp
+        - php-iconv
+        - php-imagick
+        - php-intl
+        - php-ldap
+        - php-mbstring
+        - php-memcached
+        - php-openssl
+        - php-pdo_mysql
+        - php-pdo_sqlite
+        - php-redis
+        - php-soap
+        - php-xml
+        - php-zip
+        -
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/composer
+
+          cp -rf composer/helpers ${DEPENDABOT_NATIVE_HELPERS_PATH}/composer/
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/composer/helpers/v2/build
+
+          cp -rf composer ${DEPENDABOT_HOME}/composer
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
   - name: ${{package.name}}-pip
     options:
       no-provides: true

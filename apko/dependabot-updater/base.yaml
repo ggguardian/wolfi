@@ -5,12 +5,10 @@ contents:
     - ca-certificates
     - ca-certificates-bundle
     - dependabot-updater-cargo@local
-    - dependabot-updater-docker@local
     - dependabot-updater-gomod@local
     - dependabot-updater-maven@local
     - dependabot-updater-npm@local
     - dependabot-updater-pip@local
-    - dependabot-updater-terraform@local
     - git-shim@local
     - openssl
     - py3.11-mercurial@local
@@ -21,7 +19,7 @@ contents:
 environment:
   DEPENDABOT_HOME: /home/dependabot
   DEPENDABOT_NATIVE_HELPERS_PATH: /opt
-  DEPENDABOT_UPDATER_VERSION: 0.264.0
+  DEPENDABOT_UPDATER_VERSION: 0.272.0
   DEPENDABOT: true
   GIT_LFS_SKIP_SMUDGE: 1
   GO_LEGACY: local
