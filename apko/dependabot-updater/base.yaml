@@ -9,6 +9,7 @@ contents:
     - dependabot-updater-gomod@local
     - dependabot-updater-maven@local
     - dependabot-updater-npm@local
+    - dependabot-updater-nuget@local
     - dependabot-updater-pip@local
     - git-shim@local
     - openssl
@@ -26,7 +27,7 @@ environment:
   GO_LEGACY: local
   GOTOOLCHAIN: local
   NODE_EXTRA_CA_CERTS: /etc/ssl/certs/ca-certificates.crt
-  PATH: "/home/dependabot/.pyenv/bin:/home/dependabot/dependabot-updater/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  PATH: "/home/dependabot/.pyenv/bin:/home/dependabot/dependabot-updater/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/dotnet/current"
   PYENV_ROOT: /home/dependabot/.pyenv
 
 paths:

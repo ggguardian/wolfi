@@ -65,8 +65,14 @@ environment:
   environment:
     DEPENDABOT_HOME: "/home/dependabot"
     DEPENDABOT_NATIVE_HELPERS_PATH: "/opt"
+    DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+    DOTNET_INSTALL_DIR: /usr/local/dotnet/current
+    DOTNET_NOLOGO: "true"
+    DOTNET_SDK_VERSION: "8.0.303"
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "true"
     GO_LEGACY: "local"
     GOTOOLCHAIN: "local"
+    NUGET_SCRATCH: /opt/nuget/helpers/tmp
     PY_3_10: "3.10.13"
     PY_3_11: "3.11.9"
     PY_3_12: "3.12.5"
@@ -78,6 +84,7 @@ pipeline:
   - uses: git-checkout
     with:
       repository: https://github.com/dependabot/dependabot-core
+      recurse-submodules: true
       tag: v${{package.version}}
       expected-commit: c8fa18ef76af57b0a42d0df27682b4801fef9a2c
 
@@ -90,6 +97,10 @@ pipeline:
   - uses: patch
     with:
       patches: ${{package.name}}/go_modules.patch
+
+  - uses: patch
+    with:
+      patches: ${{package.name}}/nuget.patch
 
   - name: Core
     runs: |
@@ -379,6 +390,41 @@ subpackages:
           bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/npm_and_yarn/helpers/build
 
           cp -rf npm_and_yarn ${DEPENDABOT_HOME}/npm_and_yarn
+          cp -rf common ${DEPENDABOT_HOME}/common
+          cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
+
+  - name: ${{package.name}}-nuget
+    options:
+      no-provides: true
+      no-depends: true
+    dependencies:
+      runtime:
+        - ${{package.name}}
+        - icu
+    pipeline:
+      - runs: |
+          export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"
+          export DEPENDABOT_NATIVE_HELPERS_PATH="${{targets.subpkgdir}}${DEPENDABOT_NATIVE_HELPERS_PATH}"
+
+          mkdir -p $DEPENDABOT_HOME
+          mkdir -p ${DEPENDABOT_NATIVE_HELPERS_PATH}/nuget
+
+          export DOTNET_INSTALL_DIR="${{targets.subpkgdir}}${DOTNET_INSTALL_DIR}"
+          export DOTNET_ROOT="$DOTNET_INSTALL_DIR"
+
+          curl --location --output dotnet-install.sh https://dot.net/v1/dotnet-install.sh
+          chmod +x dotnet-install.sh
+          mkdir -p "${DOTNET_INSTALL_DIR}"
+          ./dotnet-install.sh --version "${DOTNET_SDK_VERSION}" --install-dir "${DOTNET_INSTALL_DIR}"
+
+          export PATH="${PATH}:${DOTNET_INSTALL_DIR}"
+          dotnet --list-runtimes
+          dotnet --list-sdks
+
+          cp -rf nuget/helpers "${DEPENDABOT_NATIVE_HELPERS_PATH}/nuget/helpers"
+          bash ${DEPENDABOT_NATIVE_HELPERS_PATH}/nuget/helpers/build
+
+          cp -rf nuget ${DEPENDABOT_HOME}/nuget
           cp -rf common ${DEPENDABOT_HOME}/common
           cp -rf updater ${DEPENDABOT_HOME}/dependabot-updater
 

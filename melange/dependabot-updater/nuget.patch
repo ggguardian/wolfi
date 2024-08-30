@@ -1,0 +1,13 @@
+diff --git a/nuget/helpers/build b/nuget/helpers/build
+index db7b45a2c..c707cc7ad 100755
+--- a/nuget/helpers/build
++++ b/nuget/helpers/build
+@@ -22,7 +22,7 @@ cp -r \
+   "$install_dir"
+ 
+ os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+-arch=$(dpkg --print-architecture)
++arch=$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')
+ if [ "$arch" = "amd64" ]; then
+   arch="x64"
+ fi
