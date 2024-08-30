@@ -317,7 +317,7 @@ subpackages:
     dependencies:
       runtime:
         - ${{package.name}}
-        - go
+        - go~1.22
     pipeline:
       - runs: |
           export DEPENDABOT_HOME="${{targets.subpkgdir}}${DEPENDABOT_HOME}"

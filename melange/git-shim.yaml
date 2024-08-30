@@ -26,26 +26,22 @@ environment:
       - busybox
       - ca-certificates-bundle
       - git
+      - go
 
 vars:
   gem: parallel
 
 pipeline:
-  - if: ${{build.arch}} == 'x86_64'
-    uses: fetch
+  - uses: git-checkout
     with:
-      uri: https://github.com/dependabot/${{package.name}}/releases/download/v${{package.version}}/${{package.name}}-v${{package.version}}-linux-amd64.tar.gz
-      strip-components: 0
-      expected-sha256: 8169f3faad95afdd797d399d830d5d166b4b8323510d6a3e2780e457ff686c05
+      repository: https://github.com/dependabot/${{package.name}}
+      tag: v${{package.version}}
+      expected-commit: af162fe63aacfba741d8cf058384c9af52b82e44
 
-  - if: ${{build.arch}} == 'aarch64'
-    uses: fetch
+  - uses: go/build
     with:
-      uri: https://github.com/dependabot/${{package.name}}/releases/download/v${{package.version}}/${{package.name}}-v${{package.version}}-linux-arm64.tar.gz
-      strip-components: 0
-      expected-sha256: 0d3941b1aecb728af9bb5916c37edef18a1e6a26c2a16e012037d9add9abc010
+      packages: .
+      prefix: /home/dependabot/dependabot-updater
+      output: git
 
-  - runs: |
-      DESTDIR=${{targets.destdir}}/usr/bin
-      install -d -m 755 $DESTDIR
-      install -D -m 755 ${{package.name}} ${DESTDIR}/${{package.name}}
+  - uses: strip

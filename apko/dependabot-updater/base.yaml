@@ -5,6 +5,7 @@ contents:
     - ca-certificates
     - ca-certificates-bundle
     - dependabot-updater-cargo@local
+    - dependabot-updater-composer@local
     - dependabot-updater-gomod@local
     - dependabot-updater-maven@local
     - dependabot-updater-npm@local
@@ -24,6 +25,7 @@ environment:
   GIT_LFS_SKIP_SMUDGE: 1
   GO_LEGACY: local
   GOTOOLCHAIN: local
+  NODE_EXTRA_CA_CERTS: /etc/ssl/certs/ca-certificates.crt
   PATH: "/home/dependabot/.pyenv/bin:/home/dependabot/dependabot-updater/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
   PYENV_ROOT: /home/dependabot/.pyenv
 
