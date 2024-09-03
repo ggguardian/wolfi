@@ -1,5 +1,9 @@
 include: ../common.yaml
 
+archs:
+  - amd64
+  - arm64
+
 contents:
   packages:
     - ca-certificates

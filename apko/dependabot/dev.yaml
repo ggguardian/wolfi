@@ -1,5 +1,9 @@
 include: base.yaml
 
+archs:
+  - amd64
+  - arm64
+
 contents:
   packages:
     - bash

@@ -80,15 +80,33 @@ done
 
 if [[ "$OS" == "darwin" ]]; then
   DOCKER_UID=0
+  DOCKER_HOME="/root"
 else
   DOCKER_UID=$(id -u)
+  if [[ $DOCKER_UID -eq 0 ]]; then
+    DOCKER_HOME="/root"
+  else
+    DOCKER_HOME="/"
+  fi
 fi
 
-docker run -it --rm --privileged -u ${DOCKER_UID} \
+if [[ "$APKO_CMD" == "publish" ]]; then
+  docker run -it --rm --privileged -u ${DOCKER_UID} \
   -v ${WORK_DIR}:/work -w /work \
+  -v ${HOME}/.docker/config.json:${DOCKER_HOME}/.docker/config.json \
   cgr.dev/chainguard/apko:latest \
     $APKO_CMD $APKO_ARGS \
       --sbom=false \
       --cache-dir=/work/.cache/apk \
       --workdir=/work/apko/$(basename $(dirname $APKO_CONFIG)) \
-      $(basename $APKO_CONFIG) $APKO_TAG /work/images/${APKO_OUTPUT_TAR}
+      $(basename $APKO_CONFIG) $APKO_TAG
+else
+  docker run -it --rm --privileged -u ${DOCKER_UID} \
+    -v ${WORK_DIR}:/work -w /work \
+    cgr.dev/chainguard/apko:latest \
+      $APKO_CMD $APKO_ARGS \
+        --sbom=false \
+        --cache-dir=/work/.cache/apk \
+        --workdir=/work/apko/$(basename $(dirname $APKO_CONFIG)) \
+        $(basename $APKO_CONFIG) $APKO_TAG /work/images/${APKO_OUTPUT_TAR}
+fi

@@ -3,7 +3,7 @@
 ## Build Packages
 
 ```shell
-./scripts/melange.sh --arch x86_64 \
+./scripts/melange.sh \
   melange/git-shim.yaml \
   melange/py3-mercurial.yaml \
   melange/py3-pdm.yaml \
@@ -15,7 +15,7 @@
 - Build `prod` image:
 
 ```shell
-./scripts/apko.sh --arch x86_64 \
+./scripts/apko.sh \
   apko/dependabot-updater/base.yaml \
   ggguardian/dependabot-updater:latest \
   dependabot-updater-latest.tar
@@ -24,7 +24,7 @@
 - Build `dev` image:
 
 ```shell
-./scripts/apko.sh --arch x86_64 \
+./scripts/apko.sh \
   apko/dependabot-updater/dev.yaml \
   ggguardian/dependabot-updater:latest-dev \
   dependabot-updater-latest-dev.tar
@@ -32,18 +32,35 @@
 
 ## Load images
 
-- Load `prod` image:
-
-```shell
-docker load --input images/dependabot-updater-latest.tar
-```
-
 - Load `dev` image:
 
 ```shell
 docker load --input images/dependabot-updater-latest-dev.tar
 ```
 
+- Load `prod` image:
+
+```shell
+docker load --input images/dependabot-updater-latest.tar
+```
+
+## Publish images
+
+- Publish `prod` image:
+
+```shell
+./scripts/apko.sh --publish \
+  apko/dependabot-updater/base.yaml \
+  ggguardian/dependabot-updater:latest
+```
+
+- Publish `dev` image:
+
+```shell
+./scripts/apko.sh --publish \
+  apko/dependabot-updater/dev.yaml \
+  ggguardian/dependabot-updater:latest-dev
+```
 
 ## Use with dependabot CLI
 
