@@ -26,7 +26,7 @@ environment:
       - busybox
       - ca-certificates-bundle
       - git
-      - go
+      - go~1.22
 
 vars:
   gem: parallel

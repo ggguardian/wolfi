@@ -41,7 +41,7 @@ environment:
       - composer
       - curl
       - curl-dev
-      - go
+      - go~1.22
       - krb5-dev
       - libffi-dev
       - mariadb-dev
